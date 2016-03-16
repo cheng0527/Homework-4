@@ -1,0 +1,107 @@
+<!-- List items with avatar and action -->
+<!doctype html>
+<html lang="en" prefix="og: http://ogp.me/ns#">
+<head>
+  <meta charset="utf-8">
+<link rel="stylesheet" href="mdl/material.min.css">
+<script src="mdl/material.min.js"></script>
+<script src="js/jquery-1.12.1.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<style>
+.demo-list-action {
+  width: 300px;
+}
+</style>
+</head>
+<body>
+
+<form action="#">
+  <div class="mdl-textfield mdl-js-textfield">
+    <input class="mdl-textfield__input" type="text" id="txtName">
+    <label class="mdl-textfield__label" for="sample1">Your name...</label>
+	
+  </div>
+	<button class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored" onclick="postActor();">
+	  <i class="material-icons">add</i>
+	</button>
+</form>
+<br/>
+	<div id="personList" class="demo-list-action mdl-list">
+	  
+	</div>
+	
+
+
+
+<script type="text/javascript">
+	$(document).ready(function(){
+		$.getJSON( "http://localhost:3000/actors", function( data ) {
+				  
+		  var items = [];
+		  for(var i=0; i < data.length; i++){
+			var actor = data[i];
+			var html = '<div class="mdl-list__item">' +
+							'<span class="mdl-list__item-primary-content">' +
+							  '<i class="material-icons mdl-list__item-avatar">person</i>' +
+							  '<span>{0}</span>' +
+							'</span>' +
+							'<a class="mdl-list__item-secondary-action" onclick="toggleStar({2}, \'{3}\', this);" href="#"><i class="material-icons">{1}</i></a>' +
+					   '</div>';
+			var star = 'star';
+			if(actor.starred === false){
+				star = 'star_border';
+			}
+			var person = html.replace('{0}', actor.name).replace('{1}', star).replace('{2}', actor.id).replace('{3}', actor.name);		   
+			items.push( person);
+		  }
+		 $( "#personList" ).append( items.join( "" ) );		 
+		
+		});
+	
+		
+	});
+
+function postActor(){
+	var name = $("#txtName").val();
+	if(name === ''){
+		alert('Please, enter text.');
+		return;	
+	}
+	var person =  {
+	    "name": name,
+	    "starred": false
+	  };
+	$.post('http://localhost:3000/actors', person, function(response) {
+		$("#txtName").val('');
+		window.location.reload();
+	}, 'json');
+}
+
+
+function toggleStar(id, name, link){
+	var star = $(link).find('i');
+	var starred = false;
+	var currentText = $.trim($(star).html());
+	if(currentText === 'star'){
+		$(star).html('star_border');	
+		starred = false;
+	}
+	else if(currentText === 'star_border'){
+		$(star).html('star');
+		starred = true;
+	}
+
+	$.ajax({
+	    url: 'http://localhost:3000/actors/' + id,
+	    type: 'PUT',
+	    data : {"starred": starred, "name": name},
+	    success: function(result) {
+		// Do something with the result
+	    }
+	});
+	
+}
+</script>	
+	
+</body>
+</html>
